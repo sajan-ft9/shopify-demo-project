@@ -33,15 +33,8 @@ export default function CollectionsIndexPage() {
 
     const toastMarkup = toast && <Toast content={toast.content} error={toast.error} onDismiss={() => setToast(null)} duration={4500} />;
 
-    const rowMarkup = collectionsWithIds.map(({ id, title, handle, image, sort_order }, index) => (
+    const rowMarkup = collectionsWithIds.map(({ id, title, handle, sort_order }, index) => (
         <IndexTable.Row key={id} id={id} position={index} selected={selectedResources.includes(id)}>
-            {/* <IndexTable.Cell>
-                <Thumbnail
-                    source={image || ImageIcon}
-                    alt={title}
-                    size="small"
-                />
-            </IndexTable.Cell> */}
             <IndexTable.Cell>
                 <Text variant="bodyMd" fontWeight="bold" as="span">{title}</Text>
             </IndexTable.Cell>
@@ -75,6 +68,7 @@ export default function CollectionsIndexPage() {
     return (
         <Frame>
             <Page
+                fullWidth
                 title={t('CollectionsPage.title')}
                 primaryAction={
                     <Button primary loading={syncMutation.isLoading} onClick={handleSync}>
@@ -107,7 +101,6 @@ export default function CollectionsIndexPage() {
                                 selectedItemsCount={allResourcesSelected ? 'All' : selectedResources.length}
                                 onSelectionChange={handleSelectionChange}
                                 headings={[
-                                    { title: '' }, // Image column
                                     { title: t('CollectionsPage.table.headings.title') },
                                     { title: t('CollectionsPage.table.headings.handle') },
                                     { title: t('CollectionsPage.table.headings.sortOrder') },

@@ -75,6 +75,7 @@ export default function ProductsIndexPage() {
     return (
         <Frame>
             <Page
+                fullWidth
                 title={t('ProductsPage.title')}
                 primaryAction={
                     <Button primary loading={syncMutation.isLoading} onClick={handleSync}>

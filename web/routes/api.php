@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\CollectionsController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\OrdersController;
 use App\Http\Controllers\Api\ProductsController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,9 +27,11 @@ Route::middleware(['shopify.auth'])->group(function () {
     Route::get('products', [ProductsController::class, 'index']);
     Route::post('products/sync', [ProductsController::class, 'sync']);
 
-    Route::get('orders', [App\Http\Controllers\Api\OrdersController::class, 'index']);
-    Route::post('orders/sync', [App\Http\Controllers\Api\OrdersController::class, 'sync']);
+    Route::get('orders', [OrdersController::class, 'index']);
+    Route::post('orders/sync', [OrdersController::class, 'sync']);
 
-    Route::get('collections', [App\Http\Controllers\Api\CollectionsController::class, 'index']);
-    Route::post('collections/sync', [App\Http\Controllers\Api\CollectionsController::class, 'sync']);
+    Route::get('collections', [CollectionsController::class, 'index']);
+    Route::post('collections/sync', [CollectionsController::class, 'sync']);
+
+    Route::get('dashboard', [DashboardController::class, 'index']);
 });
