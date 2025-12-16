@@ -1,5 +1,8 @@
 # Shopify App Developer Technical Assignment - Demo App
 
+**Name:** Sajan Khadka
+**Email:** sajankhad2@gmail.com
+
 This project is a Shopify Embedded App built using the [Shopify App Template for PHP](https://github.com/Shopify/shopify-app-template-php). It fulfills the requirements by providing a comprehensive dashboard and management interface for Shopify Products, Collections, and Orders, with both manual and automatic synchronization capabilities.
 
 ## Tech Stack
