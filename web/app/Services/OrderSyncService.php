@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Product;
+use App\Models\Order;
 use Shopify\Auth\Session;
 use Shopify\Clients\Graphql;
 
-class ProductSyncService
+class OrderSyncService
 {
     protected Graphql $client;
     protected Session $session;
@@ -17,7 +17,9 @@ class ProductSyncService
         $this->client = new Graphql($session->getShop(), $session->getAccessToken());
     }
 
-
+    /**
+     * Sync all orders from Shopify and return count
+     */
     public function syncAll(): int
     {
         $syncedCount = 0;
@@ -26,18 +28,21 @@ class ProductSyncService
 
         $query = <<<'GRAPHQL'
         query ($first: Int!, $after: String) {
-            products(first: $first, after: $after) {
+            orders(first: $first, after: $after) {
                 edges {
                     node {
                         id
-                        title
-                        handle
-                        descriptionHtml
-                        status
-                        vendor
-                        productType
-                        images(first: 5) { edges { node { url } } }
-                        variants(first: 1) { edges { node { price } } }
+                        name
+                        email
+                        totalPriceSet {
+                            shopMoney {
+                                amount
+                                currencyCode
+                            }
+                        }
+                        displayFinancialStatus
+                        displayFulfillmentStatus
+                        createdAt
                     }
                 }
                 pageInfo { hasNextPage endCursor }
@@ -51,11 +56,11 @@ class ProductSyncService
                 'variables' => ['first' => 50, 'after' => $after],
             ])->getDecodedBody();
 
-            $edges = $response['data']['products']['edges'] ?? [];
-            $pageInfo = $response['data']['products']['pageInfo'] ?? [];
+            $edges = $response['data']['orders']['edges'] ?? [];
+            $pageInfo = $response['data']['orders']['pageInfo'] ?? [];
 
             foreach ($edges as $edge) {
-                $this->upsertProduct($edge['node']);
+                $this->upsertOrder($edge['node']);
                 $syncedCount++;
             }
 
@@ -66,23 +71,22 @@ class ProductSyncService
         return $syncedCount;
     }
 
-    protected function upsertProduct(array $node)
+    protected function upsertOrder(array $node)
     {
         $shopifyId = $node['id'];
-        $price = data_get($node, 'variants.edges.0.node.price');
-        $images = collect(data_get($node, 'images.edges', []))->pluck('node.url')->toArray();
+        $amount = data_get($node, 'totalPriceSet.shopMoney.amount');
+        $currency = data_get($node, 'totalPriceSet.shopMoney.currencyCode');
 
-        return Product::updateOrCreate(
+        return Order::updateOrCreate(
             ['shopify_id' => $shopifyId, 'shop_id' => $this->session->getShop()],
             [
-                'title' => $node['title'],
-                'handle' => $node['handle'],
-                'description' => strip_tags($node['descriptionHtml']),
-                'status' => strtolower($node['status']),
-                'vendor' => $node['vendor'],
-                'product_type' => $node['productType'],
-                'price' => $price,
-                'images' => $images,
+                'name' => $node['name'],
+                'email' => $node['email'],
+                'total_price' => $amount,
+                'currency' => $currency,
+                'financial_status' => $node['displayFinancialStatus'],
+                'fulfillment_status' => $node['displayFulfillmentStatus'],
+                'created_at_shopify' => $node['createdAt'],
                 'synced_at' => now(),
             ]
         );

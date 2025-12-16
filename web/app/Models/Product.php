@@ -9,7 +9,20 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'shopify_id',
+        'title',
+        'description',
+        'handle',
+        'status',
+        'vendor',
+        'product_type',
+        'price',
+        'images',
+        'variants',
+        'shop_id',
+        'synced_at',
+    ];
 
     protected $casts = [
         'images' => 'array',

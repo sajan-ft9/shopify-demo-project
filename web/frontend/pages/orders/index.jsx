@@ -2,56 +2,69 @@ import {
     IndexTable, LegacyCard, IndexFilters, useSetIndexFiltersMode, useIndexResourceState,
     Text, Badge, useBreakpoints, Page, Layout, EmptyState, Button, Spinner, Toast, Frame, Pagination
 } from '@shopify/polaris';
-import { useProducts } from '../../hooks/useProducts';
-import { useSyncProducts } from '../../hooks/useSyncProducts';
+import { useOrders } from '../../hooks/useOrders';
+import { useSyncOrders } from '../../hooks/useSyncOrders';
 import { useState } from 'react';
+import {
+    ORDER_FINANCIAL_STATUS_BADGE,
+    ORDER_FULFILLMENT_STATUS_BADGE
+} from '../../constants';
 
-import { PRODUCT_STATUS_BADGE } from '../../constants';
 
 import { useTranslation } from 'react-i18next';
 
-export default function ProductsIndexPage() {
+export default function OrdersIndexPage() {
     const { t } = useTranslation();
     const { smDown } = useBreakpoints();
     const { mode, setMode } = useSetIndexFiltersMode();
 
     const {
         page, setPage, queryValue, selectedTab, setSelectedTab,
-        products, meta, isLoading, isError, refetch,
+        orders, meta, isLoading, isError, refetch,
         tabs, handleQueryChange, handleQueryClear, handleClearAll
-    } = useProducts();
+    } = useOrders();
 
     const [toast, setToast] = useState(null);
 
-    const { syncMutation, handleSync } = useSyncProducts({
+    const { syncMutation, handleSync } = useSyncOrders({
         onSuccessCallback: (result) => {
             refetch();
-            setToast({ content: result.message || t('ProductsPage.toast.syncSuccess'), error: result.error });
+            setToast({ content: result.message || t('OrdersPage.toast.syncSuccess'), error: result.error });
         }
     });
 
-    const productsWithIds = products.map((p) => ({ ...p, id: String(p.id) }));
-    const { selectedResources, allResourcesSelected, handleSelectionChange } = useIndexResourceState(productsWithIds);
+    const ordersWithIds = orders.map((p) => ({ ...p, id: String(p.id) }));
+    const { selectedResources, allResourcesSelected, handleSelectionChange } = useIndexResourceState(ordersWithIds);
 
     const toastMarkup = toast && <Toast content={toast.content} error={toast.error} onDismiss={() => setToast(null)} duration={4500} />;
 
-    const rowMarkup = productsWithIds.map(({ id, title, vendor, status, price }, index) => (
+    const rowMarkup = ordersWithIds.map(({ id, name, email, financial_status, fulfillment_status, total_price, currency, created_at_shopify }, index) => (
         <IndexTable.Row key={id} id={id} position={index} selected={selectedResources.includes(id)}>
             <IndexTable.Cell>
-                <Text variant="bodyMd" fontWeight="bold" as="span">{title}</Text>
-            </IndexTable.Cell>
-            <IndexTable.Cell>{vendor || '-'}</IndexTable.Cell>
-            <IndexTable.Cell>
-                <Badge status={PRODUCT_STATUS_BADGE[status] || 'new'}>{status ? t(`Statuses.${status.toLowerCase()}`) : '-'}</Badge>
+                <Text variant="bodyMd" fontWeight="bold" as="span">{name}</Text>
             </IndexTable.Cell>
             <IndexTable.Cell>
-                <Text as="span" alignment="end" numeric>{price ? `$${Number(price).toFixed(2)}` : '-'}</Text>
+                {new Date(created_at_shopify).toLocaleDateString()}
+            </IndexTable.Cell>
+            <IndexTable.Cell>{email || '-'}</IndexTable.Cell>
+            <IndexTable.Cell>
+                <Text as="span" alignment="end" numeric>{total_price ? `${currency} ${Number(total_price).toFixed(2)}` : '-'}</Text>
+            </IndexTable.Cell>
+            <IndexTable.Cell>
+                <Badge status={ORDER_FINANCIAL_STATUS_BADGE[financial_status] || 'new'}>
+                    {financial_status ? t(`Statuses.${financial_status.toLowerCase()}`) : '-'}
+                </Badge>
+            </IndexTable.Cell>
+            <IndexTable.Cell>
+                <Badge status={ORDER_FULFILLMENT_STATUS_BADGE[fulfillment_status] || 'new'}>
+                    {fulfillment_status ? t(`Statuses.${fulfillment_status.toLowerCase()}`) : t('Statuses.unfulfilled')}
+                </Badge>
             </IndexTable.Cell>
         </IndexTable.Row>
     ));
 
-    if (isLoading && !products.length) return (
-        <Page title={t('ProductsPage.title')}>
+    if (isLoading && !orders.length) return (
+        <Page title={t('OrdersPage.title')}>
             <Layout>
                 <Layout.Section>
                     <LegacyCard>
@@ -65,9 +78,9 @@ export default function ProductsIndexPage() {
     );
 
     if (isError) return (
-        <Page title={t('ProductsPage.title')}>
-            <EmptyState heading={t('ProductsPage.emptyStateHeading')} action={{ content: t('ProductsPage.retry'), onAction: refetch }}>
-                <p>{t('ProductsPage.emptyStateContent')}</p>
+        <Page title={t('OrdersPage.title')}>
+            <EmptyState heading={t('OrdersPage.emptyStateHeading')} action={{ content: t('OrdersPage.retry'), onAction: refetch }}>
+                <p>{t('OrdersPage.emptyStateContent')}</p>
             </EmptyState>
         </Page>
     );
@@ -75,10 +88,10 @@ export default function ProductsIndexPage() {
     return (
         <Frame>
             <Page
-                title={t('ProductsPage.title')}
+                title={t('OrdersPage.title')}
                 primaryAction={
                     <Button primary loading={syncMutation.isLoading} onClick={handleSync}>
-                        {syncMutation.isLoading ? t('ProductsPage.syncing') : t('ProductsPage.syncButton')}
+                        {syncMutation.isLoading ? t('OrdersPage.syncing') : t('OrdersPage.syncButton')}
                     </Button>
                 }
             >
@@ -87,7 +100,7 @@ export default function ProductsIndexPage() {
                         <LegacyCard>
                             <IndexFilters
                                 queryValue={queryValue}
-                                queryPlaceholder={t('ProductsPage.searchPlaceholder')}
+                                queryPlaceholder={t('OrdersPage.searchPlaceholder')}
                                 onQueryChange={handleQueryChange}
                                 onQueryClear={handleQueryClear}
                                 cancelAction={{ onAction: handleQueryClear }}
@@ -102,15 +115,17 @@ export default function ProductsIndexPage() {
                             />
                             <IndexTable
                                 condensed={smDown}
-                                resourceName={{ singular: 'product', plural: 'products' }}
-                                itemCount={products.length}
+                                resourceName={{ singular: 'order', plural: 'orders' }}
+                                itemCount={orders.length}
                                 selectedItemsCount={allResourcesSelected ? 'All' : selectedResources.length}
                                 onSelectionChange={handleSelectionChange}
                                 headings={[
-                                    { title: t('ProductsPage.table.headings.title') },
-                                    { title: t('ProductsPage.table.headings.vendor') },
-                                    { title: t('ProductsPage.table.headings.status') },
-                                    { title: t('ProductsPage.table.headings.price'), alignment: 'end' },
+                                    { title: t('OrdersPage.table.headings.order') },
+                                    { title: t('OrdersPage.table.headings.date') },
+                                    { title: t('OrdersPage.table.headings.customer') },
+                                    { title: t('OrdersPage.table.headings.total'), alignment: 'end' },
+                                    { title: t('OrdersPage.table.headings.paymentStatus') },
+                                    { title: t('OrdersPage.table.headings.fulfillmentStatus') },
                                 ]}
                             >
                                 {rowMarkup}

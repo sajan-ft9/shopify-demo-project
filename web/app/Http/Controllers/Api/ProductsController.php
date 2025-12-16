@@ -3,63 +3,67 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Http\Resources\ProductResource;
+use App\Services\ProductService;
 use App\Services\ProductSyncService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use App\Http\Responses\ApiResponse;
 use Shopify\Auth\Session;
+use Illuminate\Support\Facades\Log;
 
 class ProductsController extends Controller
 {
+    use ApiResponse;
+
     public function index(Request $request)
     {
-        $query = Product::query();
+        try {
+            /** @var Session $session */
+            $session = $request->get('shopifySession');
+            if (!$session) {
+                return $this->error('Shopify session not found', 401);
+            }
 
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $service = new ProductService($session);
+
+            $filters = $request->only(['search', 'status']);
+            $perPage = (int) $request->get('per_page', 10);
+
+            $products = $service->list($filters, $perPage);
+
+            $productsTransformed = ProductResource::collection($products);
+
+            return $this->paginated($products, 'Products fetched successfully.', $productsTransformed);
+        } catch (\Exception $e) {
+            Log::error('Fetching products failed: ' . $e->getMessage());
+
+            return $this->error('Failed to fetch products: ' . $e->getMessage(), 500);
         }
-
-        if ($request->filled('status') && in_array($request->status, ['active', 'draft', 'archived'])) {
-            $query->where('status', $request->status);
-        }
-
-        /** @var Session $session */
-        $session = $request->get('shopifySession');
-        $query->where('shop_id', $session->getShop());
-
-        $perPage = $request->get('per_page', 10);
-        $products = $query->paginate($perPage);
-
-        return response()->json([
-            'data' => $products->items(),
-            'meta' => [
-                'current_page' => $products->currentPage(),
-                'last_page' => $products->lastPage(),
-                'total' => $products->total(),
-                'per_page' => $products->perPage(),
-            ],
-        ]);
     }
+
 
     public function sync(Request $request)
     {
         try {
             /** @var Session $session */
             $session = $request->get('shopifySession');
-            $service = new ProductSyncService($session);
-            $result = $service->syncAll();
+            if (!$session) {
+                return $this->error('Shopify session not found', 401);
+            }
 
-            return response()->json([
-                'success' => true,
-                'message' => "Synced {$result['synced_count']} products successfully.",
-            ]);
+            $syncService = new ProductSyncService($session);
+            $syncedCount = $syncService->syncAll();
+
+            return $this->success(
+                ['synced_count' => $syncedCount],
+                $syncedCount . ' Products synced successfully.'
+            );
         } catch (\Exception $e) {
-            Log::error('Product sync failed: ' . $e->getMessage());
+            Log::error('Product sync failed', [
+                'error' => $e->getMessage(),
+            ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Sync failed: ' . $e->getMessage(),
-            ], 500);
+            return $this->error('Sync failed: ' . $e->getMessage(), 500);
         }
     }
 }

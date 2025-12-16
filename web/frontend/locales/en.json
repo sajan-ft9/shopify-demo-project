@@ -9,7 +9,8 @@
   },
   "NavigationMenu": {
     "pageName": "Page name",
-    "products": "Products"
+    "products": "Products",
+    "orders": "Orders"
   },
   "NotFound": {
     "description": "Check the URL and try again, or use the search bar to find what you need.",
@@ -35,5 +36,66 @@
     },
     "title": "Product Counter",
     "totalProductsHeading": "TOTAL PRODUCTS"
+  },
+  "OrdersPage": {
+    "title": "Orders",
+    "syncButton": "Sync Orders",
+    "syncing": "Syncing…",
+    "searchPlaceholder": "Search orders",
+    "emptyStateHeading": "Could not load orders",
+    "emptyStateContent": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "table": {
+      "headings": {
+        "order": "Order",
+        "date": "Date",
+        "customer": "Customer",
+        "total": "Total",
+        "paymentStatus": "Payment Status",
+        "fulfillmentStatus": "Fulfillment Status"
+      }
+    },
+    "toast": {
+      "syncSuccess": "Orders synced successfully!",
+      "syncError": "Sync failed. Please try again."
+    }
+  },
+  "ProductsPage": {
+    "title": "Products",
+    "syncButton": "Sync Products",
+    "syncing": "Syncing…",
+    "searchPlaceholder": "Search products",
+    "emptyStateHeading": "Could not load products",
+    "emptyStateContent": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "table": {
+      "headings": {
+        "title": "Title",
+        "vendor": "Vendor",
+        "status": "Status",
+        "price": "Price"
+      }
+    },
+    "toast": {
+      "syncSuccess": "Products synced successfully!",
+      "syncError": "Sync failed. Please try again."
+    }
+  },
+  "Statuses": {
+    "all": "All",
+    "active": "Active",
+    "draft": "Draft",
+    "archived": "Archived",
+    "paid": "Paid",
+    "pending": "Pending",
+    "refunded": "Refunded",
+    "voided": "Voided",
+    "partially_paid": "Partially Paid",
+    "partially_refunded": "Partially Refunded",
+    "fulfilled": "Fulfilled",
+    "unfulfilled": "Unfulfilled",
+    "partially_fulfilled": "Partially Fulfilled",
+    "scheduled": "Scheduled",
+    "on_hold": "On Hold"
   }
 }
