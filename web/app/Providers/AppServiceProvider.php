@@ -4,9 +4,9 @@ namespace App\Providers;
 
 use App\Lib\DbSessionStorage;
 use App\Lib\Handlers\AppUninstalled;
-use App\Lib\Handlers\Privacy\CustomersDataRequest;
-use App\Lib\Handlers\Privacy\CustomersRedact;
-use App\Lib\Handlers\Privacy\ShopRedact;
+use App\Lib\Handlers\Products\ProductsCreate;
+use App\Lib\Handlers\Products\ProductsDelete;
+use App\Lib\Handlers\Products\ProductsUpdate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Shopify\Context;
@@ -57,18 +57,9 @@ class AppServiceProvider extends ServiceProvider
 
         Registry::addHandler(Topics::APP_UNINSTALLED, new AppUninstalled());
 
-        /*
-         * This sets up the mandatory privacy webhooks. You’ll need to fill in the endpoint to be used by your app in
-         * the “Privacy webhooks” section in the “App setup” tab, and customize the code when you store customer data
-         * in the handlers being registered below.
-         *
-         * More details can be found on shopify.dev:
-         * https://shopify.dev/docs/apps/webhooks/configuration/mandatory-webhooks
-         *
-         * Note that you'll only receive these webhooks if your app has the relevant scopes as detailed in the docs.
-         */
-        Registry::addHandler('CUSTOMERS_DATA_REQUEST', new CustomersDataRequest());
-        Registry::addHandler('CUSTOMERS_REDACT', new CustomersRedact());
-        Registry::addHandler('SHOP_REDACT', new ShopRedact());
+        // Product Webhooks
+        Registry::addHandler(Topics::PRODUCTS_CREATE, new ProductsCreate());
+        Registry::addHandler(Topics::PRODUCTS_UPDATE, new ProductsUpdate());
+        Registry::addHandler(Topics::PRODUCTS_DELETE, new ProductsDelete());
     }
 }

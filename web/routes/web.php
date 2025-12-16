@@ -75,6 +75,36 @@ Route::get('/api/auth/callback', function (Request $request) {
         );
     }
 
+    $response = Registry::register('/api/webhooks', Topics::PRODUCTS_CREATE, $shop, $session->getAccessToken());
+    if ($response->isSuccess()) {
+        Log::debug("Registered PRODUCTS_CREATE webhook for shop $shop");
+    } else {
+        Log::error(
+            "Failed to register PRODUCTS_CREATE webhook for shop $shop with response body: " .
+                print_r($response->getBody(), true)
+        );
+    }
+
+    $response = Registry::register('/api/webhooks', Topics::PRODUCTS_UPDATE, $shop, $session->getAccessToken());
+    if ($response->isSuccess()) {
+        Log::debug("Registered PRODUCTS_UPDATE webhook for shop $shop");
+    } else {
+        Log::error(
+            "Failed to register PRODUCTS_UPDATE webhook for shop $shop with response body: " .
+                print_r($response->getBody(), true)
+        );
+    }
+
+    $response = Registry::register('/api/webhooks', Topics::PRODUCTS_DELETE, $shop, $session->getAccessToken());
+    if ($response->isSuccess()) {
+        Log::debug("Registered PRODUCTS_DELETE webhook for shop $shop");
+    } else {
+        Log::error(
+            "Failed to register PRODUCTS_DELETE webhook for shop $shop with response body: " .
+                print_r($response->getBody(), true)
+        );
+    }
+
     $redirectUrl = Utils::getEmbeddedAppUrl($host);
     if (Config::get('shopify.billing.required')) {
         list($hasPayment, $confirmationUrl) = EnsureBilling::check($session, Config::get('shopify.billing'));
@@ -87,45 +117,45 @@ Route::get('/api/auth/callback', function (Request $request) {
     return redirect($redirectUrl);
 });
 
-// Route::get('/api/products/count', function (Request $request) {
-//     /** @var AuthSession */
-//     $session = $request->get('shopifySession'); // Provided by the shopify.auth middleware, guaranteed to be active
+Route::get('/api/products/count', function (Request $request) {
+    /** @var AuthSession */
+    $session = $request->get('shopifySession'); // Provided by the shopify.auth middleware, guaranteed to be active
 
-//     $client = new Rest($session->getShop(), $session->getAccessToken());
-//     $result = $client->get('products/count');
+    $client = new Rest($session->getShop(), $session->getAccessToken());
+    $result = $client->get('products/count');
 
-//     return response($result->getDecodedBody());
-// })->middleware('shopify.auth');
+    return response($result->getDecodedBody());
+})->middleware('shopify.auth');
 
-// Route::post('/api/products', function (Request $request) {
-//     /** @var AuthSession */
-//     $session = $request->get('shopifySession'); // Provided by the shopify.auth middleware, guaranteed to be active
+Route::post('/api/products', function (Request $request) {
+    /** @var AuthSession */
+    $session = $request->get('shopifySession'); // Provided by the shopify.auth middleware, guaranteed to be active
 
-//     $success = $code = $error = null;
-//     try {
-//         ProductCreator::call($session, 5);
-//         $success = true;
-//         $code = 200;
-//         $error = null;
-//     } catch (\Exception $e) {
-//         $success = false;
+    $success = $code = $error = null;
+    try {
+        ProductCreator::call($session, 5);
+        $success = true;
+        $code = 200;
+        $error = null;
+    } catch (\Exception $e) {
+        $success = false;
 
-//         if ($e instanceof ShopifyProductCreatorException) {
-//             $code = $e->response->getStatusCode();
-//             $error = $e->response->getDecodedBody();
-//             if (array_key_exists("errors", $error)) {
-//                 $error = $error["errors"];
-//             }
-//         } else {
-//             $code = 500;
-//             $error = $e->getMessage();
-//         }
+        if ($e instanceof ShopifyProductCreatorException) {
+            $code = $e->response->getStatusCode();
+            $error = $e->response->getDecodedBody();
+            if (array_key_exists("errors", $error)) {
+                $error = $error["errors"];
+            }
+        } else {
+            $code = 500;
+            $error = $e->getMessage();
+        }
 
-//         Log::error("Failed to create products: $error");
-//     } finally {
-//         return response()->json(["success" => $success, "error" => $error], $code);
-//     }
-// })->middleware('shopify.auth');
+        Log::error("Failed to create products: $error");
+    } finally {
+        return response()->json(["success" => $success, "error" => $error], $code);
+    }
+})->middleware('shopify.auth');
 
 
 Route::post('/api/webhooks', function (Request $request) {
