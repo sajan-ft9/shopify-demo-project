@@ -26,4 +26,7 @@ Route::middleware(['shopify.auth'])->group(function () {
 
     Route::get('orders', [App\Http\Controllers\Api\OrdersController::class, 'index']);
     Route::post('orders/sync', [App\Http\Controllers\Api\OrdersController::class, 'sync']);
+
+    Route::get('collections', [App\Http\Controllers\Api\CollectionsController::class, 'index']);
+    Route::post('collections/sync', [App\Http\Controllers\Api\CollectionsController::class, 'sync']);
 });
