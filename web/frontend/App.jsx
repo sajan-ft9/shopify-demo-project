@@ -30,6 +30,10 @@ export default function App() {
                   label: t("NavigationMenu.products"),
                   destination: "/products",
                 },
+                {
+                  label: t("NavigationMenu.collections"),
+                  destination: "/collections",
+                },
               ]}
             />
             <Routes pages={pages} />

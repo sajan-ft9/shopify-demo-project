@@ -88,6 +88,7 @@ export default function OrdersIndexPage() {
     return (
         <Frame>
             <Page
+                fullWidth
                 title={t('OrdersPage.title')}
                 primaryAction={
                     <Button primary loading={syncMutation.isLoading} onClick={handleSync}>
