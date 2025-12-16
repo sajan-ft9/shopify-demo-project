@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "d459e65146ac71d5b4cbdc4deaa62e73"
-name = "sajan-demo-app"
+client_id = "a34d853488f0f6adb81e9ff8877a38df"
+name = "sajan-demo-shop"
 application_url = "https://example.com"
 embedded = true
 
